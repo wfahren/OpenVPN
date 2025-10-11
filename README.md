@@ -151,7 +151,7 @@ Use the tcpdump command on the VPN server, and monitor the TCP MSS. The MSS opti
 
 10.8.0.2 is the VPN client and 10.10.0.204 is my Proxmox server on my lan. I am using NAT  on the OpenVPN server to access my local network, that is why the different subnets.
 
-The mss from the web server (10.10.0.204) my have a different mss than below, if you have not set it with a iptable rule. What we are interested in is what the client (10.8.0.2) mss sends to the server for testing. Which is normally 1500 Ethernet MTU -40 IP/TCP headers = mss 1460. To set the MSS from the web server to the VPN, use iptable command(s) below.
+The MSS from the web server (10.10.0.204) may have a different MSS than listed below, which is normally 1460 (1500 Ethernet MTU minus 40 IP/TCP headers), if you haven't set it with an iptables rule. What we're interested in is what the client's (10.8.0.2) MSS sends to the server for testing. To set the MSS from the web server to the VPN, use the iptables command(s) below.
 
 Linux and Window's kernel may derive the correct MSS from the tun interface's MTU, it is best practice to include the iptables TCPMSS rule for both directions when dealing with VPNs.
 
