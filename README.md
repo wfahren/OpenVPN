@@ -6,7 +6,7 @@ Your VPN connection is up, but web sites (HTTP)  and SSH will not load/connect 
 
 * * *
 
-## You must have a working VPN connection that you can ping the client from the OpenVPN server
+## You must have a working VPN connection so that you can ping the client from the OpenVPN server
 
 You can find the client's IP address in the OpenVPN server log. The client name is normally what you named your client config file (for example: client-thinkpad.ovpn). The client I want to test is client-thinkpad, Do a search for the clients IP address, I use the journal command to search, it will be the "pool return IPv4=xxx.xxx.xxx.xxx".
 
