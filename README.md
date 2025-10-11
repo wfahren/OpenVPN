@@ -93,7 +93,7 @@ Since the goal is to avoid fragmentation by respecting the largest MTU on the pa
 This also confirms the DSL link MTU is 1492 bytes  
 1432 VPN inner MTU + 52 OpenVPN + 8 PPoE = 1492 bytes
 
-Which a standard PPoE MTU size.  
+Which is a common PPoE MTU size.  
 1500 Ethernet MTU - 8 PPoE overhead = 1492 bytes.
 
 * * *
