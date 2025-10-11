@@ -22,7 +22,7 @@ Oct 09 17:57:59 mars ovpn-server[4043]: client-thinkpad/<your IP>:54988 MULTI_sv
 
 This the example is OpenVPN over a DSL (PPoE) connection.
 
-From the OpenVPN serve, ping the clients IPv4 address, 10.8.0.2 in my case. I already set the mtu, so the mtu could/will be different. I had many different payload sizes before I found the max, here is just the two that narrowed it down. My client is connected via StarLink that is why the ping looks high, not bad for going to space and back.
+From the OpenVPN server, ping the client's IPv4 address, 10.8.0.2 in my case. I already set the MTU, so yours might be different. I used many different payload sizes before I found the max; here are just the two that narrowed it down. My client is connected via Starlink, which is why the ping looks high—not bad for going to space and back.
 
 ```text
 ping -M do -s 1405 10.8.0.2
