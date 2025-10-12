@@ -44,6 +44,10 @@ The resulting client file will be saved to the `~/easy-rsa/client-ovpn-files` di
 
 ***
 
+### Trouble Shooting
+
+If you've followed the setup and have a VPN connection, you can ping the client, but web sites still won't load. This is often an MTU issue. [Follow the steps in this guide to troulbe shoot](https://github.com/wfahren/OpenVPN/blob/main/web_sites_not_loading.md)
+
 ## 🚀 Get Started
 
 [Click here to get started with the setup\!](https://github.com/wfahren/OpenVPN/blob/main/openvpn-install.md)
