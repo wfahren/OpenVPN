@@ -30,8 +30,11 @@ To generate a new client configuration, run the script from your `~/easy-rsa` di
 
 ```bash
 cd ~/easy-rsa
+./easyrsa build-client-full client-thinkpad nopass
 ./make-client-ovpn.sh client-thinkpad
 ````
+
+**note:** You need to first configure the system. Click on the link at the bottom on this page and follow the steps outlined.
 
 **Output:**
 
