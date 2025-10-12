@@ -14,7 +14,7 @@ fi
 
 # Configuration variables (update these to match your installation)
 EASY_RSA_DIR="$HOME/easy-rsa"                    # Location of easy-rsa directory
-CLIENT_CONFIG_DIR="$HOME/easy-rsa"               # Location of client-config directory
+CLIENT_CONFIG_DIR="$HOME/easy-rsa"               # Location of client-ovpn-files directory
 OUTPUT_DIR="$HOME/easy-rsa/client-ovpn-files"    # Location for client .ovpn files
 BASE_CONFIG="$HOME/easy-rsa/client-base.conf"    # Location of client OpenVPN base config
 

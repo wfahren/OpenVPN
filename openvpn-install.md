@@ -179,7 +179,7 @@ Download and place in your `~/easy-rsa` directory.
 ```text
 cd ~/easy-rsa
 wget https://raw.githubusercontent.com/wfahren/OpenVPN/refs/heads/main/make-client-ovpn.sh
-chmod +x make-client-opvn.sh
+chmod +x make-client-ovpn.sh
 ```
 
 * * *
@@ -214,12 +214,12 @@ verb 3
 
 * * *
 
-## make-client-opvn usage
+## make-client-ovpn usage
 
-The make-client-opvp.sh script takes only one option the client name.
+The make-client-ovpn.sh script takes only one argument: the client name (e.g., client-thinkpad).
 
 ```text
-cd ~/east-rsa
+cd ~/easy-rsa
 ./make-client-config client-thinkpad
 Validating required files for client-thinkpad...
 Generating OpenVPN configuration for client: client-thinkpad...
@@ -227,9 +227,9 @@ SUCCESS: Configuration saved to /home/user/easy-rsa/client-ovpn-files/client-thi
 
 ```
 
-The script will create an .opvn  in the ~/easy-rsa/client-ovpn-file directory; that you will use on the client(s).
+The script will create a .ovpn file in the ~/easy-rsa/client-ovpn-files directory that you will use on the client(s).
 
-The script has variables that can be changed if you want to store the .opvn file somewhere else, or your certificates and key are in a different directory other than `/easy-rsa`.
+The script has variables that can be changed if you want to store the .ovpn file somewhere else, or your certificates and key are in a different directory other than `/easy-rsa`.
 
 ```text
 EASY_RSA_DIR="$HOME/easy-rsa"                    # Location of easy-rsa directory
