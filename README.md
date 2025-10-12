@@ -2,7 +2,7 @@
 
 This repository contains a comprehensive guide and supporting script for setting up a secure OpenVPN server on a Linux host, utilizing modern **Elliptic Curve Cryptography (ECC)** and the **`tls-crypt`** security feature.
 
----
+***
 
 ## 📘 Guide Summary
 
@@ -12,7 +12,7 @@ This setup process covers three main phases:
 2. **Configuration:** Creating and configuring the main OpenVPN server configuration file (`server.conf`).
 3. **Client Creation:** Using the included BASH script to automatically generate all-in-one client configuration files.
 
----
+***
 
 ## 🛠️ make-client-ovpn.sh
 
@@ -38,3 +38,9 @@ cd ~/easy-rsa
 The resulting client file will be saved to the `~/easy-rsa/client-ovpn-files` directory:
 
 `~/easy-rsa/client-ovpn-files/client-thinkpad.ovpn`
+
+***
+
+## 🚀 Get Started
+
+[Click here to get started with the setup\!](https://github.com/wfahren/OpenVPN/blob/main/openvpn-install.md)
