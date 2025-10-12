@@ -1,4 +1,4 @@
-# Determine Tunnel Maximum MTU and Config OpenVPN Server Confif to Fix
+# Determine VPN Tunnel Maximum MTU and OpenVPN Server Config Option to Fix
 
 ## Why would you need to do this?
 
