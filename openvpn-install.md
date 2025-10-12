@@ -13,7 +13,7 @@ cd ~/easy-rsa
 
 * * *
 
-## Creating a PKI for OpenVPN
+### Creating a PKI for OpenVPN
 
 Create and edit the `vars` file using nano or your preferred text editor. The vars file is used when you create the server it will ensure that your private keys and certificate requests are configured to use modern Elliptic Curve Cryptography (ECC) to generate keys and secure signatures for your clients and OpenVPN server.
 
@@ -48,20 +48,22 @@ DIRECTORY STATUS (commands would take effect on these locations)
    CA status: CA has not been built
 ```
 
-Build ca.crt and cert/key for server and client(s). We are using `openvpn-server` for the server cert/key and `client-thinkpad` for client. If you plan on using a different name, you will need to also substitute the name during the rest of the setup.
+* * *
+
+## Server Configuration
+
+* * *
+
+Build ca.crt and cert/key for server. We are using `openvpn-server` for the server name.
 
 ```text
 ./easyrsa build-ca nopass
 ./easyrsa build-server-full openvpn-server nopass
-./easyrsa build-client-full client-thinkpad nopass
-
 ```
-
-**note:** Use the `./easyrsa build-client-full` for each new client. You will only build the ca.crt and openvpn-server cert/key once.
 
 * * *
 
-## Create the tls-crypt key
+### Create the tls-crypt key
 
 We are using the `tls-crypt ta.key` server option, to not only authenticate, but also encrypt the TLS control channel.
 
@@ -81,7 +83,7 @@ sudo chown $USER: ta.key
 
 * * *
 
-## Copy the Cert and Keys for the Server
+### Copy the Cert and Keys for the Server
 
 Copy the ca.crt and openvpn-server cert/key to the /etc/openvpn/server/ directory.
 
@@ -90,16 +92,13 @@ sudo cp ta.key /etc/openvpn/server
 sudo cp ~/easy-rsa/pki/ca.crt /etc/openvpn/server
 sudo cp ~/easy-rsa/pki/private/openvpn-server.key /etc/openvpn/server
 sudo cp ~/easy-rsa/pki/issued/openvpn-server.crt /etc/openvpn/server
-
 ```
 
 **Certificate and key generation is complete.**
 
 * * *
 
-* * *
-
-## Configuring OpenVPN
+### Configuring OpenVPN
 
 Create the  `server.conf`  and paste the below server options into the /etc/openvpn/server.conf.
 
@@ -139,7 +138,6 @@ verb 3
 explicit-exit-notify 1
 # If web sites are NOT loading once the VPN is up, remove the ; and adjust tun-mtu for your needs  
 ;tun-mtu 1432
-
 ```
 
 ### Explanation of important server options
@@ -166,9 +164,17 @@ sudo journalctl -u openvpn@server.service -xe
 
 * * *
 
+## Client configuration
+
 * * *
 
-## Create .ovpn File for your Client
+### Create the Client Certificate and Key
+
+```text
+./easyrsa build-client-full client-thinkpad nopass
+```
+
+### Create .ovpn File for your Client
 
 I have created a BASH script `make-client-ovpn.sh` to automate this process.
 
@@ -184,7 +190,7 @@ chmod +x make-client-ovpn.sh
 
 * * *
 
-## Create file with client option
+### Create file with client option
 
 Create client-base.conf file that will have the OpenVPN client options needed for a client to connect.
 
@@ -209,12 +215,11 @@ persist-tun
 remote-cert-tls server
 verb 3
 # End Client option
-
 ```
 
 * * *
 
-## make-client-ovpn usage
+### make-client-ovpn usage
 
 The make-client-ovpn.sh script takes only one argument: the client name (e.g., client-thinkpad).
 
@@ -224,7 +229,6 @@ cd ~/easy-rsa
 Validating required files for client-thinkpad...
 Generating OpenVPN configuration for client: client-thinkpad...
 SUCCESS: Configuration saved to /home/user/easy-rsa/client-ovpn-files/client-thinkpad.ovpn
-
 ```
 
 The script will create a .ovpn file in the ~/easy-rsa/client-ovpn-files directory that you will use on the client(s).
