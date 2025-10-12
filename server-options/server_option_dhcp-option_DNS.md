@@ -1,4 +1,4 @@
-# The OpenVPN server option dhcp-option
+# The OpenVPN server option dhcp-option DNS
 
 ```text
 push "dhcp-option DNS 10.10.0.1"

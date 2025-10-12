@@ -6,8 +6,6 @@ push "dhcp-option DOMAIN lan"
 
 This directive tells the OpenVPN server to instruct the connecting client to use **`lan`** as a **DNS search domain suffix**.
 
------text
-
 ## Explanation of `push "dhcp-option DOMAIN lan"`
 
 This line is placed in the **server's OpenVPN configuration file** and serves to simplify access to resources on the server's network for the client.
