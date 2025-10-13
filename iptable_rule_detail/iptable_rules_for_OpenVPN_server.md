@@ -1,6 +1,8 @@
 # Comprehensive Analysis of iptables Rules
 
-These 5 `iptable` rules are used a pass traffic through our OpenVPN server to allow clients on one subnet (e.g., VPN clients on `10.8.0.0/24`) to directly access resources on another private subnet (e.g., a protected server network on `10.10.0.0/24`).
+These five iptables rules configure the OpenVPN server to function as a router, enabling traffic to pass from the VPN subnet (10.8.0.0/24) to the local network (10.10.0.0/24) and the internet. This allows VPN clients to directly access local resources and to use the local network's gateway (DSL router) for internet access.
+
+To allow Internet routing the OpenVPN server configuration file, located at `/etc/openvpn/server.conf`, must include the directive:`push "redirect-gateway def1 bypass-dhcp"`
 
 ***
 
@@ -8,7 +10,7 @@ These 5 `iptable` rules are used a pass traffic through our OpenVPN server to al
 
 ### `iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o enp6s18 -j MASQUERADE`
 
-This rule enables **Internet Connection Sharing (ICS)** or **IP Masquerading**, allowing a private network (`10.8.0.0/24`) to access an external network (like the internet) through a single public IP address on the gateway device.
+This rule enables **IP Masquerading**, allowing our VPN clients on network (`10.8.0.0/24`) to access to our internal network through a single IP address on the VPN server.
 
 | Component | Description |
 | :--- | :--- |
@@ -24,7 +26,9 @@ This rule enables **Internet Connection Sharing (ICS)** or **IP Masquerading**, 
 
 ### `iptables -t mangle -A POSTROUTING -p tcp -o tun0 --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1392`
 
-This rule is a common fix for **Maximum Transmission Unit (MTU) mismatches** and fragmentation issues, particularly when using a VPN or tunnel interface (`tun0`).
+This rule is a common fix for **Maximum Transmission Unit (MTU) mismatches** and fragmentation issues, when using a VPN tunnel interface (`tun0`).
+
+[Click on this link on how to calulate the `--set-mss` value for your OpenVPN server.](https://github.com/wfahren/OpenVPN/blob/main/web_sites_not_loading.md)
 
 | Component | Description |
 | :--- | :--- |
@@ -57,7 +61,7 @@ This rule is a **fundamental security component** that enables **stateful inspec
 
 ### `iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT`
 
-This rule provides **stateful forwarding** for traffic passing *through* the Linux machine when it is acting as a router or gateway.
+This rule provides **stateful forwarding** for traffic passing *through* the OpenVN server when, is acting as a router.
 
 | Component | Description |
 | :--- | :--- |
@@ -72,7 +76,7 @@ This rule provides **stateful forwarding** for traffic passing *through* the Lin
 
 ### `iptables -A FORWARD -s 10.8.0.0/24 -d 10.10.0.0/24 -j ACCEPT`
 
-This rule explicitly allows **unrestricted traffic flow** between two specific internal networks, provided the Linux machine is configured to route traffic between them (i.e., IP forwarding is enabled).
+This rule explicitly allows **unrestricted traffic flow** (allows ALL IP and ports to pass through) between two specific internal networks, provided the Linux machine is configured to route traffic between them (i.e., IP forwarding is enabled).
 
 | Component | Description |
 | :--- | :--- |

@@ -179,6 +179,12 @@ sudo nano /etc/sysctl.conf
 sudo sysctl -p
 ```
 
+## iptables Rules
+
+These five iptables rules configure the OpenVPN server to function as a router, enabling traffic to pass from the VPN subnet (10.8.0.0/24) to the local network (10.10.0.0/24) and the internet. This allows VPN clients to directly access local resources and to use the local network's gateway (DSL router) for internet access.
+
+To allow Internet routing the OpenVPN server configuration file, located at `/etc/openvpn/server.conf`, must include the directive:`push "redirect-gateway def1 bypass-dhcp"`
+
 ### NAT table: Masquerade VPN client traffic
 
 ```text
