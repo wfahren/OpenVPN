@@ -162,6 +162,113 @@ sudo systemctl restart openvpn.service
 sudo journalctl -u openvpn@server.service -xe
 ```
 
+## NAT Setup Using iptables
+
+This server configuration is using NAT to access the local LAN. So we need to set some iptable rules to allow the traffic.
+
+## IP Forwarding and iptables Configuration
+
+Use as a guide if you are using NAT from the VPN server to the local network. adjust your interface names accordingly.
+
+### Enable IP forwarding
+
+```text
+sysctl -w net.ipv4.ip_forward=1
+# Making the setting permanent by editing /etc/sysctl.conf and adding net.ipv4.ip_forward = 1
+sudo nano /etc/sysctl.conf 
+sudo sysctl -p
+```
+
+### NAT table: Masquerade VPN client traffic
+
+```text
+# replace enp6s18 with your interface name that connects to your lan.
+iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -o enp6s18 -j MASQUERADE
+```
+
+### Mangle table: Clamp MSS for VPN traffic
+
+See this [guide](https://github.com/wfahren/OpenVPN/blob/main/web_sites_not_loading.md) on how to determine the MTU. Normally only required if the connection is a link with MTU >1500 bytes, DSL for example. Having said that it is good practice to set when dealing with VPN's
+
+```text
+# replace tun0 with your interface name of your tunnnel.
+iptables -t mangle -A POSTROUTING -p tcp -o tun0 --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1392
+```
+
+### Filter table: Allow established/related traffic
+
+```text
+iptables -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+```
+
+### Filter table: Allow VPN clients to access internal network
+
+```text
+iptables -A FORWARD -s 10.8.0.0/24 -d 10.10.0.0/24 -j ACCEPT
+```
+
+* * *
+
+### Verify rules
+
+NAT table
+
+```text
+sudo iptables -L -n -t nat -v
+Chain PREROUTING (policy ACCEPT 64641 packets, 7877K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain INPUT (policy ACCEPT 1500 packets, 203K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 473 packets, 236K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain POSTROUTING (policy ACCEPT 475 packets, 237K bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+ 9340  600K MASQUERADE  0    --  *      enp6s18  10.8.0.0/24          0.0.0.0/0           
+```
+
+Mangle table
+
+```text
+sudo iptables -L -n -t mangle -v
+Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+
+Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+ 2459  128K TCPMSS     6    --  *      tun0    0.0.0.0/0            0.0.0.0/0            tcp flags:0x06/0x02 TCPMSS set 1392
+```
+
+Filter table
+
+```text
+sudo iptables -L -n -t filter -v
+Chain INPUT (policy ACCEPT 208K packets, 63M bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+82373   15M ACCEPT     0    --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
+
+Chain FORWARD (policy ACCEPT 206K packets, 138M bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+64997   42M
+ACCEPT     0    --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
+ 4420  293K ACCEPT     0    --  tun0   *       10.8.0.0/24          10.10.0.0/24        
+
+Chain OUTPUT (policy ACCEPT 356K packets, 243M bytes)
+ pkts bytes target     prot opt in     out     source               destination    
+```
+
 * * *
 
 ## Client configuration
