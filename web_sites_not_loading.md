@@ -20,9 +20,9 @@ Oct 09 17:57:59 mars ovpn-server[4043]: client-thinkpad/<your IP>:54988 MULTI_sv
 
 ## Test the connection with ping to find maximum packet size the VPN will support
 
-This the example is OpenVPN over a DSL (PPoE) connection.
+The connection the OpenVPN server uses to connect to the Internet is DSL (PPPoE).
 
-From the OpenVPN server, ping the client's IPv4 address, 10.8.0.2 in my case. I already set the MTU, so yours might be different. I used many different payload sizes before I found the max; here are just the two that narrowed it down. My client is connected via Starlink, which is why the ping looks high—not bad for going to space and back.
+From the OpenVPN server, ping the client's IPv4 address, 10.8.0.2 in this case. I already set the MTU, so yours might be different. I used many different payload sizes before I found the max Here are just the two that narrowed it down. My client is connected via Starlink, which is why the ping looks high—not bad for going to space and back.
 
 ```text
 ping -M do -s 1405 10.8.0.2
@@ -84,7 +84,7 @@ The maximum ICMP payload size from the ping test was 1404 bytes.
 Calculate the maximum MTU for the DSL link:  
 1404 ICMP Data + 20 IP Header + 8 ICMP Header = 1432 Maximum MTU
 
-Since the goal is to avoid fragmentation by respecting the largest MTU on the path, so the maximum inner MTU needs to be =< 1432.
+The goal is to avoid fragmentation by respecting the largest MTU on the path, and the maximum inner MTU needs to be ≤1432.
 
 | Tested Max ICMP Data | ICMP/IP Overhead | Confirmed Max Path MTU |
 | --- | --- | --- |
@@ -151,7 +151,7 @@ Use the tcpdump command on the VPN server, and monitor the TCP MSS. The MSS opti
 
 10.8.0.2 is the VPN client and 10.10.0.204 is my Proxmox server on my lan. I am using NAT  on the OpenVPN server to access my local network, that is why the different subnets.
 
-The MSS from the web server (10.10.0.204) may have a different MSS than listed below, which is normally 1460 (1500 Ethernet MTU minus 40 IP/TCP headers), if you haven't set it with an iptables rule. What we're interested in is what the client's (10.8.0.2) MSS sends to the server for testing. To set the MSS from the web server to the VPN, use the iptables command(s) below.
+The MSS from the web server (10.10.0.204) may have a different MSS than listed below, which is normally 1460 (1500 Ethernet MTU minus 40 IP/TCP headers), if you haven't set it with an iptables rule. What we're interested in is what the client's (10.8.0.2) MSS sends to the server for testing. To set the MSS from the web server to the VPN, use the iptables command below.
 
 Linux and Window's kernel may derive the correct MSS from the tun interface's MTU, it is best practice to include the iptables TCPMSS rule for both directions when dealing with VPNs.
 
