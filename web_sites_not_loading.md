@@ -188,7 +188,7 @@ iptables -t mangle -A POSTROUTING -p tcp -o tun0 --tcp-flags SYN,RST SYN -j TCPM
 
 ### Analysis of iptables Rules
 
-[Click here for a detiled analysis of iptables of the rule.]
+[Click here for a detiled analysis of iptables of the rule.](https://github.com/wfahren/OpenVPN/blob/main/iptable_rule_detail/iptable_rules_for_OpenVPN_server.md)
 
 ## Show rule
 
