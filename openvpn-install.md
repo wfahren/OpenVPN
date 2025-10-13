@@ -208,6 +208,10 @@ iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
 iptables -A FORWARD -s 10.8.0.0/24 -d 10.10.0.0/24 -j ACCEPT
 ```
 
+### Analysis of iptables Rules
+
+[Click here for a detiled analysis of iptables of the rules.]
+
 * * *
 
 ### Verify rules
