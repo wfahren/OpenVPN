@@ -63,7 +63,7 @@ This rule provides **stateful forwarding** for traffic passing *through* the Lin
 | :--- | :--- |
 | **`-A FORWARD`** | Appends the rule to the **FORWARD chain**, which handles traffic destined for a network *other* than the local system (traffic passing through). |
 | **`-m state`** | Loads the **`state` module** to track connection status. |
-| **`--state RELATED,ESTABLISHED`** | Matches packets belonging to **active or related connections**. |
+| **`--state RELATED,ESTABLISHED`** | Matches packets belonging to **active or related connections**. :<br>**ESTABLISHED:** Active, two-way connections.<br> **RELATED:** New connections logically related to an existing one (e.g., FTP data channel). |
 | **`-j ACCEPT`** | Accepts the packet. This ensures that response packets and continuing traffic for connections between internal and external networks (that were initially allowed) are accepted by the gateway firewall. |
 
 ***
