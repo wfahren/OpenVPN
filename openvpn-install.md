@@ -148,7 +148,7 @@ explicit-exit-notify 1
 | push dhcp-option DNS | 10.10.0.1 | [more information](https://github.com/wfahren/OpenVPN/blob/main/server-options/server_option_dhcp-option_DNS.md) |
 | push dhcp-option DOMAIN | lan | [more information](https://github.com/wfahren/OpenVPN/blob/main/server-options/server_option_dhcp-option_DOMAIN.md) |
 | redirect-gateway | redirect-gateway def1 bypass-dhcp | [more information](https://github.com/wfahren/OpenVPN/blob/main/server-options/server_option_redirect-gateway.md) |
-| tun-mtu | 1432 | [more information](https://github.com/wfahren/OpenVPN/blob/main/web_sites_not_loading.md) |
+| tun-mtu | 1432 | [more information](https://github.com/wfahren/OpenVPN/blob/main/server-options/server_option_tun-mtu.md) |
 
 ### Restart the OpenVPN Server
 
