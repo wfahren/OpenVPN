@@ -16,8 +16,8 @@ This rule enables **IP Masquerading**, allowing our VPN clients on network (`10.
 | :--- | :--- |
 | **`-t nat`** | Specifies the **NAT table**, used for address translation. |
 | **`-A POSTROUTING`** | Appends the rule to the **POSTROUTING chain**, processed just *before* a packet leaves the interface. |
-| **`-s 10.8.0.0/24`** | Matches packets originating from the **source network** `10.8.0.0/24` (often a VPN client pool). |
-| **`-o enp6s18`** | Matches packets exiting through the **outgoing interface** `enp6s18` (typically the external/public interface). |
+| **`-s 10.8.0.0/24`** | Matches packets originating from the **source network** `10.8.0.0/24` (the VPN client pool). |
+| **`-o enp6s18`** | Matches packets exiting through the **outgoing interface** `enp6s18` (the interface that connects to the local network 10.10.0.0/24 subnet). |
 | **`-j MASQUERADE`** | The target action. It performs **Source NAT (SNAT)**, replacing the private source IP address with the public IP address of the `enp6s18` interface. |
 
 ***
@@ -53,7 +53,7 @@ This rule is a **fundamental security component** that enables **stateful inspec
 | **`-A INPUT`** | Appends the rule to the **INPUT chain**, which handles traffic destined *for* the local system. |
 | **`-m state`** | Loads the **`state` module**, which tracks the connection state of packets. |
 | **`--state RELATED,ESTABLISHED`** | Matches packets belonging to:<br>**ESTABLISHED:** Active, two-way connections.<br> **RELATED:** New connections logically related to an existing one (e.g., FTP data channel). |
-| **`-j ACCEPT`** | Accepts the packet. This allows return traffic for connections initiated by the local system to pass through the firewall. |
+| **`-j ACCEPT`** | Accepts the packet. This allows return traffic for connections initiated by the local system to pass through the VPN server. |
 
 ***
 
