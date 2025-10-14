@@ -83,6 +83,14 @@ The maximum payload size was 1404 bytes. This confirms the links MTU of 1492
 
 * * *
 
+## Maximum Segment Size (MSS)
+
+OpenVPN will attempt to automatically determine an optimal MTU, usually by taking the MTU of the underlying physical network interface and subtracting the overhead of the tunnel protocol (like IP, UDP, and OpenVPN's own headers).
+The standard default for a typical Ethernet-based network where the physical link MTU is 1500 bytes, is often set to 1500 bytes for the tunnel MTU, which OpenVPN then adjusts internally to 1400. This is why you have black-holing, with PPoE if you do not change the `tun-mtu` to 1432.
+
+- MSS when `tun-mtu` is set to 1432.
+  - tun-mtu (1432) - IP/TCP Headers (40) = `MSS (1392)`  
+
 ## Configure OpenVPN
 
 ### Setting the Inner Tunnel MTU
@@ -98,9 +106,11 @@ sudo nano /etc/openvpn/server.conf
 sudo systemctl restart openvpn.service
 ```
 
-## iptables Configuration
+## iptables Configuration to set MSS form local network (10.10.0.0/24)
 
 ### Mangle table: Clamp MSS for VPN traffic
+
+Set the `--set-mss` option to 1392 for a PPPoE link.
 
 ```text
 # replace tun0 with your interface name of your tunnnel.
@@ -145,7 +155,7 @@ netsh interface ipv4 show subinterfaces
       1500                1        255297       1201796  vEthernet (WSL)
 ```
 
-Use tcpdump and look for the `MSS option`, it should be 1392 in both directions.
+Use `tcpdump` and look for the `MSS option`, it should be 1392 in both directions.
 
 ```text
 sudo tcpdump -i tun0 -nl | grep mss
@@ -162,5 +172,53 @@ listening on tun0, link-type RAW (Raw IP), snapshot length 262144 bytes
 1796 packets captured
 1796 packets received by filter
 0 packets dropped by kernel
+
+```
+
+Use `iperf3` to test the max MSS. If running `iperf3` from the client use the -R option. Zero Bitrate returned, means you have exceeded the maximum MSS.
+
+```text
+iperf3 -R --dont-fragment -M 1392 -c devel
+Connecting to host devel, port 5201
+Reverse mode, remote host devel is sending
+[  5] local 172.26.44.37 port 35492 connected to 10.10.0.150 port 5201
+[ ID] Interval           Transfer     Bitrate
+[  5]   0.00-1.00   sec  1.50 MBytes  12.6 Mbits/sec                  
+[  5]   1.00-2.00   sec  2.12 MBytes  17.8 Mbits/sec                  
+[  5]   2.00-3.00   sec  2.00 MBytes  16.8 Mbits/sec                  
+[  5]   3.00-4.00   sec  1.38 MBytes  11.5 Mbits/sec                  
+[  5]   4.00-5.00   sec  1.50 MBytes  12.6 Mbits/sec                  
+[  5]   5.00-6.00   sec  1.12 MBytes  9.44 Mbits/sec                  
+[  5]   6.00-7.00   sec   896 KBytes  7.34 Mbits/sec                  
+[  5]   7.00-8.00   sec   896 KBytes  7.34 Mbits/sec                  
+[  5]   8.00-9.00   sec   896 KBytes  7.34 Mbits/sec                  
+[  5]   9.00-10.00  sec   768 KBytes  6.29 Mbits/sec                  
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.06  sec  13.5 MBytes  11.3 Mbits/sec   16            sender
+[  5]   0.00-10.00  sec  13.0 MBytes  10.9 Mbits/sec                  receiver
+
+iperf Done.
+billf@thinkpad-wsl ~> iperf3 -R --dont-fragment -M 1393 -c devel
+Connecting to host devel, port 5201
+Reverse mode, remote host devel is sending
+[  5] local 172.26.44.37 port 46274 connected to 10.10.0.150 port 5201
+[ ID] Interval           Transfer     Bitrate
+[  5]   0.00-1.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   1.00-2.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   2.00-3.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   3.00-4.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   4.00-5.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   5.00-6.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   6.00-7.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   7.00-8.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   8.00-9.00   sec  0.00 Bytes  0.00 bits/sec                  
+[  5]   9.00-10.00  sec  0.00 Bytes  0.00 bits/sec                  
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Retr
+[  5]   0.00-10.04  sec  0.00 Bytes  0.00 bits/sec    5            sender
+[  5]   0.00-10.00  sec  0.00 Bytes  0.00 bits/sec                  receiver
+
+iperf Done.
 
 ```
