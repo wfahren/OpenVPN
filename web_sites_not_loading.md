@@ -2,11 +2,42 @@
 
 ## Why would you need to do this?
 
-Your VPN connection is up, but web sites (HTTP)  and SSH will not load/connect or are very very slow knowing that your ping and network bandwidth are good. This is a common problem with DSL (PPPoE) or other links where the MTU is less than 1500, often due to Path MTU Discovery (PMTUD) failure when the required ICMP error packets are dropped by a firewall.
+Your VPN connection is up, but web sites (HTTP) and SSH will not load/connect or are very very slow knowing that your ping and network bandwidth are good, this is know as `black-holing`. This is a common problem with PPPoE or other links where the MTU is less than 1500, often due to Path MTU Discovery (PMTUD) failure when the required ICMP error packets are dropped by a firewall.
 
 * * *
 
-## You must have a working VPN connection so that you can ping the client from the OpenVPN server
+## Overhead for OpenVPN over a PPPoE Link
+
+The standard PPoE MTU is 1492, which is the maximum packet size you can transmit without fragmentation.
+
+OpenVPN is configured using `proto udp4` and `data-ciphers AES-256-GCM` the default directives.
+
+### TCP Segment
+
+- **Total Overhead:**
+  - Outer IP/UDP (28) + OpenVPN (32) + Inner IP/TCP (40) = **100 bytes**
+- **Maximum payload:**
+
+  - PPPoE MTU (1492) - overhead (100) = **1392 bytes**
+
+| IP/UDP  <br>28 Bytes | OpenVPN Overhead  <br>32 Bytes | IP/TCP  <br>40 Bytes | Payload  <br>1392 Bytes |
+| :---: | :---: | :---: | :---: |
+
+### UDP Segment
+
+- **Total Overhead:**
+
+  - IP/UDP (28) + OpenVPN (32) + Inner IP/UDP (28) = **60 bytes**
+- **Maximum payload:**
+
+  - PPPoE MTU (1492) - overhead (60) = **1404 bytes**
+
+| IP/UDP  <br>28 Bytes | OpenVPN Overhead  <br>32 Bytes | IP/UDP  <br>28 Bytes | Payload  <br>1404 Bytes |
+| :---: | :---: | :---: | :---: |
+
+## Test the Link
+
+### Find the IP address of the client (if you don't know it)
 
 You can find the client's IP address in the OpenVPN server log. The client name is normally what you named your client config file (for example: client-thinkpad.ovpn). The client I want to test is client-thinkpad. Search for the client's IP address. I use the journalctl command to search—it'll be the 'pool return IPv4=xxx.xxx.xxx.xxx' entry.
 
@@ -16,22 +47,18 @@ Oct 09 17:57:59 mars ovpn-server[4043]: client-thinkpad/<your IP>:54988 MULTI_sv
 
 ```
 
-* * *
+### Use ping to find maximum payload size
 
-## Test the connection with ping to find maximum packet size the VPN will support
-
-The connection the OpenVPN server uses to connect to the Internet is DSL (PPPoE).
-
-From the OpenVPN server, ping the client's IPv4 address, 10.8.0.2 in this case. I already set the MTU, so yours might be different. I used many different payload sizes before I found the max Here are just the two that narrowed it down. My client is connected via Starlink, which is why the ping looks high—not bad for going to space and back.
+From the OpenVPN server, ping the client. From the above we expect 1404 will pass, since ping is a UDP Segment.
 
 ```text
 ping -M do -s 1405 10.8.0.2
 PING 10.8.0.2 (10.8.0.2) 1405(1433) bytes of data.
-ping: local error: message too long, mtu=1432
-ping: local error: message too long, mtu=1432
-ping: local error: message too long, mtu=1432
-ping: local error: message too long, mtu=1432
-ping: local error: message too long, mtu=1432
+ping: local error: message too long
+ping: local error: message too long
+ping: local error: message too long
+ping: local error: message too long
+ping: local error: message too long
 ^C
 --- 10.8.0.2 ping statistics ---
 5 packets transmitted, 0 received, +5 errors, 100% packet loss, time 4072ms
@@ -48,77 +75,49 @@ PING 10.8.0.2 (10.8.0.2) 1404(1432) bytes of data.
 --- 10.8.0.2 ping statistics ---
 6 packets transmitted, 6 received, 0% packet loss, time 5008ms
 rtt min/avg/max/mdev = 51.022/57.211/62.434/4.030 ms
-
 ```
 
-* * *
+The maximum payload size was 1404 bytes. This confirms the links MTU of 1492
 
-## OpenVPN Overhead (UDP)
-
-I'm using the default channel encryption `AES-256-GCM`. Look at your logs to verify and adjust accordingly
-
-### OpenVPN Overhead (UDP, AES-256-GCM)
-
-| Component | Size (bytes) |
-| --- | --- |
-| OpenVPN DATA_V2 (Header + GCM Tag) | 24  |
-| UDP Header | 8   |
-| Outer IPv4 Header | 20  |
-| **Total OpenVPN Encapsulation Overhead** | 52  |
-
-### DSL Overhead (PPoE)
-
-| Component | Size (bytes) |
-| --- | --- |
-| Data Link/PPPoE Overhead | 8   |
-
-### Total Overhead for the DSL Link
-
-Total outer (OpenVPN) overhead:  
-52 OpenVPN + 8 PPoE = `60 bytes`
-
-### Analysis of the Ping Test Result
-
-The maximum ICMP payload size from the ping test was 1404 bytes.
-
-Calculate the maximum MTU for the DSL link:  
-1404 ICMP Data + 20 IP Header + 8 ICMP Header = 1432 Maximum MTU
-
-The goal is to avoid fragmentation by respecting the largest MTU on the path, and the maximum inner MTU needs to be ≤1432.
-
-| Tested Max ICMP Data | ICMP/IP Overhead | Confirmed Max Path MTU |
-| --- | --- | --- |
-| 1404 bytes | +28 bytes | 1432 bytes |
-
-This also confirms the DSL link MTU is 1492 bytes  
-1432 VPN inner MTU + 52 OpenVPN + 8 PPoE = 1492 bytes
-
-Which is a common PPoE MTU size.  
-1500 Ethernet MTU - 8 PPoE overhead = 1492 bytes.
+1404 ICMP Data + 20 IP Header + 8 IP/UDP Header = 1432 Maximum MTU
 
 * * *
 
-## Setting the Inner Tunnel MTU
+## Configure OpenVPN
 
-The maximum size for the inner IP packet (the traffic inside the tunnel, which is what the tun-mtu setting controls) must be the largest size that, when fully encapsulated by OpenVPN does not exceed your outer MTU, which is 1492 for my PPoE DSL link.
+### Setting the Inner Tunnel MTU
 
-The inner MTU of the tunnel based on ping tests.  
+The maximum size for the inner IP packet (the traffic inside the tunnel, which is what the tun-mtu setting controls) must be the largest size that, when fully encapsulated by OpenVPN does not exceed your outer MTU, which is 1492 for PPoE.
+
 1404 from ping test +20 IP Header +8 ICMP Header = `1432` Maximum inner MTU
 
-Set the `tun-mtu 1432` in the /etc/openvpn/server.conf config file and restart the server.
+**Add `tun-mtu 1432` directive to the /etc/openvpn/server.conf config file and restart the server.**
 
 ```text
 sudo nano /etc/openvpn/server.conf
 sudo systemctl restart openvpn.service
 ```
 
+## iptables Configuration
+
+### Mangle table: Clamp MSS for VPN traffic
+
+```text
+# replace tun0 with your interface name of your tunnnel.
+iptables -t mangle -A POSTROUTING -p tcp -o tun0 --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1392
+```
+
+### Analysis of iptables Rules
+
+[Click here for a detailed analysis of iptables of the rule.](https://github.com/wfahren/OpenVPN/blob/main/iptable_rule_detail/iptable_rules_for_OpenVPN_server.md)
+
 * * *
 
-## Test the MSS clamping
+## Test
 
 **Web sites should now load.**
 
-Verify the MTU is set to the value set by `tun-mtu` 1432 in this case.
+Verify the MTU is set to the value set by `tun-mtu` 1432.
 
 ```text
 * Linux
@@ -146,14 +145,7 @@ netsh interface ipv4 show subinterfaces
       1500                1        255297       1201796  vEthernet (WSL)
 ```
 
-Use the tcpdump command on the VPN server, and monitor the TCP MSS. The MSS option should be 1392.  
-(tun-mtu=1432) - 40 (IP/TCP header) = `mss 1392`
-
-10.8.0.2 is the VPN client and 10.10.0.204 is my Proxmox server on my lan. I am using NAT  on the OpenVPN server to access my local network, that is why the different subnets.
-
-The MSS from the web server (10.10.0.204) may have a different MSS than listed below, which is normally 1460 (1500 Ethernet MTU minus 40 IP/TCP headers), if you haven't set it with an iptables rule. What we're interested in is what the client's (10.8.0.2) MSS sends to the server for testing. To set the MSS from the web server to the VPN, use the iptables command below.
-
-Linux and Window's kernel may derive the correct MSS from the tun interface's MTU, it is best practice to include the iptables TCPMSS rule for both directions when dealing with VPNs.
+Use tcpdump and look for the `MSS option`, it should be 1392 in both directions.
 
 ```text
 sudo tcpdump -i tun0 -nl | grep mss
@@ -171,45 +163,4 @@ listening on tun0, link-type RAW (Raw IP), snapshot length 262144 bytes
 1796 packets received by filter
 0 packets dropped by kernel
 
-```
-
-* * *
-
-## iptables Configuration
-
-iptables rule to set MSS clamping due to VPN tunnel overheaed and or links with a MTU less than 1500 bytes
-
-### Mangle table: Clamp MSS for VPN traffic
-
-```text
-# replace tun0 with your interface name of your tunnnel.
-iptables -t mangle -A POSTROUTING -p tcp -o tun0 --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1392
-```
-
-### Analysis of iptables Rules
-
-[Click here for a detiled analysis of iptables of the rule.](https://github.com/wfahren/OpenVPN/blob/main/iptable_rule_detail/iptable_rules_for_OpenVPN_server.md)
-
-## Show rule
-
-Mangle table - MSS Clamping
-
-```text
-sudo iptables -L -n -t mangle -v
-
-Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
- 2459  128K TCPMSS     6    --  *      tun0    0.0.0.0/0            0.0.0.0/0            tcp flags:0x06/0x02 TCPMSS set 1392
 ```
