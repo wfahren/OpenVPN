@@ -52,8 +52,6 @@ DIRECTORY STATUS (commands would take effect on these locations)
 
 ## Server Configuration
 
-* * *
-
 Build ca.crt and cert/key for server. We are using `openvpn-server` for the server name.
 
 ```text
@@ -118,6 +116,8 @@ ca /etc/openvpn/server/ca.crt
 cert /etc/openvpn/server/openvpn-server.crt
 key /etc/openvpn/server/openvpn-server.key
 tls-crypt /etc/openvpn/server/ta.key
+data-ciphers AES-256-GCM
+data-ciphers-fallback AES-256-GCM
 dh none
 server 10.8.0.0 255.255.255.0
 ifconfig-pool-persist /var/log/openvpn/ipp.txt
@@ -220,70 +220,8 @@ iptables -A FORWARD -s 10.8.0.0/24 -d 10.10.0.0/24 -j ACCEPT
 
 * * *
 
-### Verify rules
-
-NAT table
-
-```text
-sudo iptables -L -n -t nat -v
-Chain PREROUTING (policy ACCEPT 64641 packets, 7877K bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain INPUT (policy ACCEPT 1500 packets, 203K bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain OUTPUT (policy ACCEPT 473 packets, 236K bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain POSTROUTING (policy ACCEPT 475 packets, 237K bytes)
- pkts bytes target     prot opt in     out     source               destination         
- 9340  600K MASQUERADE  0    --  *      enp6s18  10.8.0.0/24          0.0.0.0/0           
-```
-
-Mangle table
-
-```text
-sudo iptables -L -n -t mangle -v
-Chain PREROUTING (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain INPUT (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain OUTPUT (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
-
-Chain POSTROUTING (policy ACCEPT 0 packets, 0 bytes)
- pkts bytes target     prot opt in     out     source               destination         
- 2459  128K TCPMSS     6    --  *      tun0    0.0.0.0/0            0.0.0.0/0            tcp flags:0x06/0x02 TCPMSS set 1392
-```
-
-Filter table
-
-```text
-sudo iptables -L -n -t filter -v
-Chain INPUT (policy ACCEPT 208K packets, 63M bytes)
- pkts bytes target     prot opt in     out     source               destination         
-82373   15M ACCEPT     0    --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
-
-Chain FORWARD (policy ACCEPT 206K packets, 138M bytes)
- pkts bytes target     prot opt in     out     source               destination         
-64997   42M
-ACCEPT     0    --  *      *       0.0.0.0/0            0.0.0.0/0            state RELATED,ESTABLISHED
- 4420  293K ACCEPT     0    --  tun0   *       10.8.0.0/24          10.10.0.0/24        
-
-Chain OUTPUT (policy ACCEPT 356K packets, 243M bytes)
- pkts bytes target     prot opt in     out     source               destination    
-```
-
-* * *
-
 ## Client configuration
 
-* * *
 
 ### Create the Client Certificate and Key
 
@@ -323,6 +261,8 @@ Paste the below client options into the file.
 client
 dev tun
 proto udp4
+data-ciphers AES-256-GCM
+data-ciphers-fallback AES-256-GCM
 remote yourOpenvpnServer.com 1194 #  can be IP or domainname
 resolv-retry infinite
 nobind
