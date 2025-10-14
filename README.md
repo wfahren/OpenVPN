@@ -9,7 +9,7 @@ This repository contains a comprehensive guide and supporting script for setting
 This setup process covers three main phases:
 
 1. **Server Setup:** Installing OpenVPN and Easy-RSA, configuring the Public Key Infrastructure (PKI), and generating all necessary server certificates, keys, and the `ta.key` for `tls-crypt`.
-2. **Configuration:** Creating and configuring the main OpenVPN server configuration file (`server.conf`).
+2. **Server Configuration:** Creating and configuring the main OpenVPN server configuration file (`server.conf`).
 3. **Client Creation:** Using the included BASH script to automatically generate all-in-one client configuration files.
 
 ***
