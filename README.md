@@ -46,7 +46,15 @@ The resulting client file will be saved to the `~/easy-rsa/client-ovpn-files` di
 
 ### Trouble Shooting
 
-If you've followed the setup and have a VPN connection, you can ping the client, but web sites still won't load. This is often an MTU issue. [Follow the steps in this guide to troulbe shoot](https://github.com/wfahren/OpenVPN/blob/main/web_sites_not_loading.md)
+If you've followed the setup and have a VPN connection, you can ping the client, but web sites still won't load. This is often an MTU issue. 
+
+If your connection to the `OpenVPN` server or any of you `clients` connect to the Internet via a PPPoE link, than this is likey your problem.
+
+In the `server.conf` add the `tun-mtu 1432` option and restart the server.
+
+If you want a detailed discription on how to determin the maximum MUT betwwen the server and a clint click on the link below.
+
+[Follow the steps in this guide to troulbe shoot](https://github.com/wfahren/OpenVPN/blob/main/web_sites_not_loading.md)
 
 ## 🚀 Get Started
 
