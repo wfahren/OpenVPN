@@ -162,15 +162,15 @@ sudo systemctl restart openvpn.service
 sudo journalctl -u openvpn@server.service -xe
 ```
 
-## NAT Setup Using iptables
+## Sutup server to forward IP packets to the Local Network
 
-This server configuration is using NAT to access the local LAN. So we need to set some iptable rules to allow the traffic.
+This server configuration is using NAT to access the local LAN. So we need to set some iptable rules to allow the traffic from the OpenVPN server to the local network.
 
 ## IP Forwarding and iptables Configuration
 
 Use as a guide if you are using NAT from the VPN server to the local network. adjust your interface names accordingly.
 
-### Enable IP forwarding
+## Enable IP forwarding
 
 ```text
 sysctl -w net.ipv4.ip_forward=1
@@ -179,7 +179,7 @@ sudo nano /etc/sysctl.conf
 sudo sysctl -p
 ```
 
-## iptables Rules
+## iptables Rules for NAT
 
 These five iptables rules configure the OpenVPN server to function as a router, enabling traffic to pass from the VPN subnet (10.8.0.0/24) to the local network (10.10.0.0/24) and the internet. This allows VPN clients to directly access local resources and to use the local network's gateway (DSL router) for internet access.
 
