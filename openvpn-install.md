@@ -136,8 +136,10 @@ persist-tun
 status /var/log/openvpn/openvpn-status.log
 verb 3
 explicit-exit-notify 1
-# If web sites are NOT loading once the VPN is up, remove the ; and adjust tun-mtu for your needs  
-;tun-mtu 1432
+# If web sites are NOT loading once the VPN is up.This is a required option, if the OpenVPN 
+# server or amy of the clients connect via PPPoE. If not you can comment out this option.
+# All DSL and Fiber services for home Internet use PPPoE. Test your your max MTU for this value.
+tun-mtu 1432
 ```
 
 ### Explanation of important server options
