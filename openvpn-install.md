@@ -222,7 +222,6 @@ iptables -A FORWARD -s 10.8.0.0/24 -d 10.10.0.0/24 -j ACCEPT
 
 ## Client configuration
 
-
 ### Create the Client Certificate and Key
 
 ```text
